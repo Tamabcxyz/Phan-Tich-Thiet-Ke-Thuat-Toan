@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <malloc.h>
+#include <string.h>
+
+typedef struct {
+	char TenDV[20];// mang 20 ki tu chua ten do vat
+	float TL, GT, DG;// trong luong gia tri don gia
+	int PA, SL;// phuong an va so luong co the lay cua tung do vat
+}DoVat;
+
+int Chon(float tl, int sl, float w){// trong luong cua 1 do vat, so luong max cua no va trong luong chua cua balo
+	int t=(int) (w / tl);// t la luu gia tri tam cua so luong cua 1 do vat
+	if (sl<t) return sl; else return t;
+}
+
+DoVat * ReadFromFile(float *W, int *n){
+     FILE *f;
+     f=fopen("CaiBalo3.INP", "r");
+     fscanf(f, "%f",W); // Xac dinh trong luong Ba lo
+	 DoVat *dsdv;
+	 dsdv=(DoVat*)malloc(sizeof(DoVat));// cap phat vung nho cho con tro
+	 int i=0;
+ 	 while (!feof(f)){
+	   fscanf(f, "%f%f%d",&dsdv[i].TL,&dsdv[i].GT,&dsdv[i].SL);// trong luong, gia tri va so luong co the lay cua 1 do vat
+	   fgets(dsdv[i].TenDV,20,f);// lay ten do vat
+	   dsdv[i].TenDV[strlen(dsdv[i].TenDV)-1]='\0';// ket thuc chuoi ten do vat
+	   dsdv[i].PA=0;// phuong an lua chon
+	   dsdv[i].DG = dsdv[i].GT / dsdv[i].TL;// tinh don gia cua moi do vat
+	   i++;
+	   dsdv=(DoVat*)realloc(dsdv, sizeof(DoVat)*(i+1));// cap phat lai
+	 }
+	 i--;
+	 *n=i;// so do vat co trong file
+     fclose(f);
+     return dsdv;
+}
+// cho do vat co don gia cao nhat len tren
+void Swap(DoVat *ds, int n){
+	for (int i=0; i<n-1; i++){
+		for (int j=i+1; j<n; j++){
+			if (ds[i].DG < ds[j].DG)
+			{
+				DoVat temp;
+				temp = ds[i];
+				ds[i] = ds[j];
+				ds[j] = temp;
+			}
+		}
+	}
+}
+
+main(){
+    DoVat *ds;
+    float W;
+    int n;
+    ds= ReadFromFile(&W,&n);
+    Swap(ds,n);
+//       for (int i=0; i<n; i++){
+//               printf("%f %f \n",ds[i].GT,ds[i].TL);
+//       }
+	for (int i=0;i<n; i++){
+		ds[i].PA = Chon(ds[i].TL, ds[i].SL, W);
+		W = W - ds[i].TL * ds[i].PA;
+	}
+	printf("Phuong An chon: \n");
+	for (int i=0; i<=n;i++){
+		printf("%d",ds[i].PA);// in phuong an
+		puts(ds[i].TenDV);// in ten
+	}
+	float tgt=0, ttl=0;// tong trong luong va tong gia tri
+	for (int i=0;i<n;i++){
+		tgt = tgt + ds[i].GT * ds[i].PA;
+		ttl = ttl + ds[i].TL * ds[i].PA;
+	}
+	printf("Tong gia tri: %.0f\n",tgt);
+	printf("Tong trong luong: %.0f",ttl);	
+
+}
