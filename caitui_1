@@ -1,0 +1,130 @@
+
+
+
+#include <stdio.h>
+#include <string.h>
+#include <malloc.h>
+#define MAX 100
+typedef struct{
+	char TenDV[20];// chuoi chua ten do vat
+	float TL,GT,DG;// trong luong, gia tri, don gia
+	int PA;// so luong do vat duoc chon
+}DoVat;// tao cau truc DoVat
+int n;// so luong do vat trong file
+DoVat *dsdv;// tao dsdv la mot mang dong
+float W;// trong luong cua balo
+int x[MAX];// luu phuong an tot nhat tam thoi
+float CT;// can tren
+float TGT;// tong gia tri cua moi vat duoc chon tai moi nut
+float GiaLNTT;// gia tri lon nhat tam thoi
+float TLConLai;// trong luong con lai cua balo tai moi nut
+
+DoVat *ReadFromFile(float *W, int *n){// do file la con tro ta can lay ra trong luong chua cua balo va so luong do vat co trong file
+	FILE *f;// tao con tro file
+	f =fopen("CaiTui1.INP","r");// mo file de doc do dat cung cho khoi can khai bao duong dan chi can ten file la dc
+	fscanf(f,"%f",W);// nhap vao trong luong chua cua balo
+	int i=0;// tao mot bien chay i=0 cho while
+	dsdv=(DoVat*)malloc(sizeof(DoVat));// cap phat vung nho cho dsdv voi kich thuong = 1 do vat
+	if(f!=NULL){// neu file khac rong moi doc dc chu
+		while(!feof(f)){// cho while chay khi ma con cai de doc thi
+			fscanf(f,"%f%f",&dsdv[i].TL,&dsdv[i].GT);// doc vao trong luong va gia tri
+			fgets(dsdv[i].TenDV,25,f);// doc vao ten cua do vat
+			dsdv[i].TenDV[strlen(dsdv[i].TenDV)-1]='\0';// khi doc het ten thi cho ket thuc chuoi
+			dsdv[i].PA=0;// so luong vat duoc chon ban dau la 0
+			dsdv[i].DG=(dsdv[i].GT/dsdv[i].TL);// don gia bang gia tri chia trong luong
+			i++;// bien i tang cho den khi het dong de doc
+			dsdv=(DoVat*)realloc(dsdv,sizeof(DoVat)*(i+1));// cap phat lai bo nho de luu do vat tiep theo
+		}
+	}
+	i--;// bo 1 dong vi dong dau la w cua balo
+	*n=i;// sau cung tra ve ket qua la so do vat co trong file
+	fclose(f);// dong file lai
+	return dsdv;// tra ve danh sach do vat
+}
+void Swap(DoVat *x, DoVat *y){// do ta can doi do vat nen ta tao 2 con tro
+	DoVat tam;// tao bien tam bat buoc phai la kieu do vat
+	tam=*x;
+	*x=*y;
+	*y=tam;
+}
+
+void BubbleSort(DoVat *dsdv, int n){// thuat toan sap xep noi bot, ta sap xep dsdv con n do vat
+	int i, j;
+	for(i=0; i<=n-2;i++)// n-2 vi hang cuoi cung ko can sap xep no da la kq roi
+		for(j=n-1;j>=i+1;j--)// chay tu cuoi den lon hon dong+1
+		{
+			float DGJ= dsdv[j].DG;// tao ra ra bien de luu lai don gia tai vi tri j
+			float DGJ_1=dsdv[j-1].DG;// tao ra ra bien de luu lai don gia tai vi tri j-1
+			if(DGJ>DGJ_1)// sap xep tu lon toi nho
+			{
+				Swap(&dsdv[j], &dsdv[j-1]);
+			}
+		}
+}
+
+void InDS(DoVat *dsdv, int n, float W){
+	float TongGT=0.0, TongTL=0.0;
+	printf("|---|--------------------|---------|---------|---------|---------|\n");
+	printf("|%-3s|%-20s|%-9s|%-9s|%-9s|%-9s|\n", "STT","Ten do vat","T. Luong", "G. Tri", "Don Gia","P. An");
+	printf("|---|--------------------|---------|---------|---------|---------|\n");
+	for(int i=0;i<n;i++){
+		printf("|%-3d", i+1);
+		printf("|%-20s", dsdv[i].TenDV);
+		printf("|%-9.1f", dsdv[i].TL);
+		printf("|%-9.1f", dsdv[i].GT);
+		printf("|%-9.1f", dsdv[i].DG);
+		printf("|%-9d|\n", dsdv[i].PA);
+		TongTL= TongTL+ dsdv[i].TL*dsdv[i].PA;// tong trong luong trong luong nhan so luong do vat duoc lay tang theo tung nut
+		TongGT=TongGT+ dsdv[i].GT*dsdv[i].PA;//tong gia tri bang gia tri nhan so luong do vat duoc lay tang theo tung nut
+	}
+	printf("|---|--------------------|---------|---------|---------|---------|\n");
+	printf("Trong luong ba lo = %0.1f\n", W);
+	printf("Tong trong luong= %0.1f Tong gia tri= %0.1f",TongTL, TongGT);
+}
+ void init(){
+ 	TLConLai=W;// dau tien suc chua cua balo con nguyen
+ 	CT= TLConLai*(dsdv[0].DG);// dau tien can tren la do vat co don gia cao nhat
+ 	TGT=0.0;
+ 	GiaLNTT=0.0;
+ }
+ //Ghi nhan phuong an tot nhat tam thoi 	
+// GHI NHAN KI LUC
+ void GhiNhanKyLuc(){
+ 	if(GiaLNTT<TGT)//neu gia tri lon nhat tam thoi ma nho hon tong gia tri cua 1 do vat tai mot nut thi
+ 	{
+ 		GiaLNTT=TGT;// gan gia tri lon nhat bang tong gia tri cua 1 do vat tai 1 nut
+ 		for(int i=0;i<n;i++)// vong lap chay qua tung do vat trong dsdv
+ 		dsdv[i].PA=x[i];// so luong do vat tai do vat thu i dang la phuong an tot nhat tam thoi
+	}
+ }
+ 
+ void Nhanh_Can(int i){
+ 	int j;//so do vat dc chon
+ 	for(j=TLConLai/dsdv[i].TL;j>=0;j--)// so do vat dc chon bang trong luong con lai cua balo chia cho trong luong do vat duoc chuyen vao i va cho toi khi so luong do vat duoc chon la 0
+ 	{
+ 		TGT=TGT+j*dsdv[i].GT;// tong gia tri do vat duoc chon tai 1 nut bang so do vat dc chon nhan gia tri cua do vat do qua tung nut
+ 		TLConLai=TLConLai-j*dsdv[i].TL;// trong luong con lai giam dan theo so luong do vat dc chon nhan voi trong luong cua tung nut di qua
+ 		CT=TGT + TLConLai*(dsdv[i+1].DG);// can tren bang tong gia tri do vat cong trong luong con lai nhan don gia cua cai tiep theo
+ 		if(CT>GiaLNTT)// neu can tren lon hon gia tri lon nhat tam thoi thi
+ 		{
+ 			x[i]=j;// do vat duoc chon ly tuong nhat la j chu ko phai i(cai truyen vao dau tien o main)
+ 			if(i==n-1 || TLConLai==0){//het do vat hoac balo day
+ 				GhiNhanKyLuc();
+			}
+			else Nhanh_Can(i+1);// neu khong phai la do vat cuoi cung thi tiep tuc kiem tra
+		 }
+		x[i]=0;
+		TGT=TGT-j*dsdv[i].GT;
+		TLConLai=TLConLai+j*dsdv[i].TL;
+	}
+ }
+int main(){
+	dsdv=ReadFromFile(&W,&n);
+	BubbleSort(dsdv,n);
+	init();
+	Nhanh_Can(0);
+	InDS(dsdv,n,W);
+	free(dsdv);
+	return 0;
+}
+
