@@ -1,0 +1,351 @@
+#include <conio.h>
+#include <stdio.h>
+#define n 254
+#include <string.h>
+#include <stdlib.h>
+///////////////////////////Khai báo bi?n/////////////////////////////
+typedef struct
+{
+    int sign;// luu tru dau cua so lon, 0: duong,1:am
+    char val[n];//luu tru dau vao nhap dang chuoi ki tu
+    int _val[n];// luu tru so lon duoi dang mang so nguyen chuyen tu mang val
+    int len;// luu do dai cua so lon
+}bigNum;
+int i,j,maxa,mina;
+bigNum sb,mb,mub,db,rb,re;
+int convi(char c );
+///////////////////////////Khai báo hàm///////////////////////////////////
+int convi(char c);
+bigNum sumBig(bigNum no1 ,bigNum no2);
+bigNum minusBig(bigNum no1,bigNum no2);
+bigNum multiBig(bigNum no1, bigNum no2);
+bigNum devideBig(bigNum no1, bigNum no2);
+void multiply10x(int x,int l,int resultBig[]);
+int length(int la, int re[]);
+int compare(bigNum no1,bigNum no2);
+void display(bigNum rb);
+////////////////////////////d?nh nghia hàm/////////////////////////////////////
+int convi(char c)       //Doi ki tu sang chu so
+{
+    switch (c)
+    {
+    case '0': return 0;  
+    case '1': return 1;  
+    case '2': return 2;  
+    case '3': return 3;  
+    case '4': return 4;  
+    case '5': return 5;  
+    case '6': return 6;  
+    case '7': return 7;  
+    case '8': return 8;  
+    case '9': return 9;  
+    default : return 0;  
+    }
+}
+//Hàm tính t?ng s? l?n
+bigNum sumBig(bigNum no1,bigNum no2)
+{  
+    if (no2.sign==1)
+    {
+        no2.sign=0;
+        return minusBig(no1,no2);
+    }
+    else
+    {
+    //Bu?c 1: Th?c hi?n phép c?ng tuong ?ng các ph?n t? t? hàng don v? i=0,..,maxa
+        for(i=0;i<maxa;i++)
+        {
+            sb._val[i]=no1._val[i]+no2._val[i];
+        }
+        //Bu?c 2: Duy?t t? hàng don v? i=0,..,maxa tìm ph?n t? > 10
+        for (i=0;i<maxa;i++)
+        {
+            if(sb._val[i]>=10)
+            {
+                sb._val[i+1]+=sb._val[i]/10;sb._val[i]=sb._val[i]%10;
+            }
+        }
+        // Tính d? dài c?a sb
+        if (sb._val[maxa]>0)
+        {
+            sb.len=maxa+1;
+        }
+        else sb.len=maxa;
+    }
+    sb.sign=rb.sign;// Gán bi?n d?u c?a rb cho sb tru?c sau dó m?i gán rb=sb
+    rb=sb;
+    return rb;
+}
+//Hàm tính hi?u s? l?n
+bigNum minusBig(bigNum no1,bigNum no2)
+{
+    //tinh hieu
+    mb.len=maxa;
+    if (no2.sign==1)
+    {
+        no2.sign=0;
+        return sumBig(no1,no2);
+    }
+    else
+    {   //Bu?c 1: Th?c hi?n phép tr? tuong ?ng các ph?n t? t? hàng don v? i=0,..,maxa
+        for(i=0;i<maxa;i++)
+        {
+            mb._val[i]=no1._val[i]-no2._val[i];
+        }
+        if (compare(no1,no2)==0) // N?u 2 s? b?ng nhau thì k?t qu? là 0
+        {          
+            rb=mb;
+            rb.sign=0;
+            return rb;
+        }
+        if (compare(no1,no2)>0)
+        {
+        //Bu?c 2: Duy?t t? hàng don v? i=0,..,maxa tìm ph?n t? < 0
+            for (i=0;i<maxa;i++)
+            {
+                if(mb._val[i]<0)
+                {
+                    mb._val[i+1]-=1;mb._val[i]=mb._val[i]+10;
+                }
+            }
+        }
+        else // N?u no1<no2 thì d?u k?t qu? s? +1
+        {
+            rb.sign+=1;
+            return minusBig(no2,no1); //return bang -minusBig(no1,no2)         
+        }
+    }
+    mb.sign=rb.sign;
+    rb=mb;
+    return rb;
+}
+//Hàm tính tích s? l?n
+bigNum multiBig(bigNum no1, bigNum no2)
+{
+    if (no1.sign!=no2.sign)
+    {
+        mub.sign=1;
+    } else mub.sign=0;
+    //Bu?c 1: Tính
+    for (i=0;i<maxa;i++)
+    {
+        for (j=0;j<maxa;j++)
+        mub._val[i+j]=mub._val[i+j]+ no1._val[i]*no2._val[j];
+    }
+    //Bu?c 2: Duy?t
+    for(i=0;i<mina+maxa;i++)
+    {
+        mub._val[i+1]+=mub._val[i]/10; mub._val[i]%=10;
+    }
+    // DO dai ket qua
+    if (mub._val[mina+maxa-1] !=0) mub.len=mina+maxa; else mub.len=mina+maxa-1;
+        return mub;
+}
+//Hàm tính thuong s? l?n
+bigNum devideBig(bigNum no1, bigNum no2)
+{
+    db.sign=0;
+    int k=0,h,dem=no1.len-no2.len;
+    bigNum dbTemp,reTemp;
+    //Khoi tao gia tri cho cac bien
+    for(j=0;j<n;j++)
+    {
+        dbTemp._val[j]=no2._val[j];
+        reTemp._val[j]=0;
+        re._val[j]=no1._val[j];
+    }
+    for(h=no1.len-no2.len;h>=0;h--)
+    {
+        for(j=0;j<no1.len;j++) dbTemp._val[j]=no2._val[j];
+        // Qua hàm multiply10x thì giá tr? c?a dbTemp._val tang g?p 10^h l?n
+        multiply10x(h,length(no1.len,dbTemp._val),dbTemp._val);
+        re.len=length(no1.len,re._val);// d? dài t?m th?i c?a bi?n re
+        dbTemp.len=length(no1.len,dbTemp._val);//d? dài t?m th?i c?a bi?n dbTemp
+        while(compare(dbTemp,re)<=0)
+        {
+            reTemp=minusBig(re,dbTemp);
+            for (j=0;j<no1.len;j++)
+            {
+                re._val[j]=reTemp._val[j];
+                reTemp._val[j]=0;
+            }
+            re.len=length(no1.len,re._val);
+            db._val[dem]=db._val[dem]+1;
+        }
+        for(j=0;j<no1.len;j++) dbTemp._val[j]=0;
+        dem=dem-1;
+    }
+    db.len=no1.len-no2.len+1;
+    return db;
+ 
+}
+// Hàm gán giá tr? g?p 10^x l?n cho giá tr? ban d?u
+void multiply10x(int x,int l,int resultBig[])
+{
+    int j;
+    for (j=l;j>=0;j--)
+        resultBig[j+x]=resultBig[j];
+    for(j=0;j<x;j++)
+        resultBig[j]=0;
+}
+int length(int la, int re[])
+{
+    int j;
+    for(j=la;j>=0;j--)
+    {
+        if (re[j]!=0) return j+1;
+    }
+    return 0;
+}
+int compare(bigNum no1,bigNum no2)
+{
+    if (no1.len>no2.len) return 1;
+    if (no1.len<no2.len) return -1;
+    if (no1.len==no2.len)
+    {
+        for(j=no1.len;j>=0;j--)
+        {
+            if (no1._val[j]>no2._val[j]) return 1;
+            if (no1._val[j]<no2._val[j]) return -1;
+        }
+    }
+    return 0;
+}
+//Hàm hi?n th?
+void display(bigNum rb)
+{
+    if (rb.len==0) printf("0");
+    while (rb._val[rb.len-1]==0&& rb.len>1)
+    {
+        rb.len=rb.len-1;
+    }
+    if (rb.sign%2==1)
+    {
+        printf("-");
+    }
+    for (i=rb.len-1;i>=0;i--)
+    {
+        printf("%d",rb._val[i]);       
+    }  
+    printf("\n");
+    }
+////////////////////////////Hàm main//////////////////////////////////////
+int main()
+{
+    bigNum no1,no2;
+    int bnext;//bien logic vong lap while
+    do
+    {
+        no1.sign=0;no2.sign=0;
+        printf("a=");
+        scanf("%s",&no1.val);
+        printf("b=");
+        scanf("%s",&no2.val);
+        for (i=0;i<n;i++)
+        {
+            sb._val[i]=0;
+            mb._val[i]=0;
+            mub._val[i]=0;
+            re._val[i]=0;
+            db._val[i]=0;
+        }
+        no1.len=strlen(no1.val);
+        no2.len=strlen(no2.val);
+        //Chuy?n t? m?ng xâu kí t? sang m?ng s? nguyên
+        for (i=0;i<no1.len;i++)
+        {
+            no1._val[i]=convi(no1.val[no1.len-1-i]);
+        }
+        for (i=0;i<no2.len;i++)
+        {
+            no2._val[i]=convi(no2.val[no2.len-1-i]);
+        }
+        //Kiem tra dau
+        if(no1.val[0]=='-')
+        {
+            no1.sign=1;
+            no1.len-=1;
+        }
+        if(no2.val[0]=='-')
+        {
+            no2.sign=1;
+            no2.len-=1;
+        }
+        // Tính d? dài no1, no2
+        while(no1._val[no1.len-1]==0&&no1.len>1)
+        {
+            no1.len-=1;
+        }
+        while(no2._val[no2.len-1]==0&&no2.len>1)
+        {
+            no2.len-=1;
+        }
+        maxa= strlen(no1.val)>strlen(no2.val)?strlen(no1.val):strlen(no2.val);
+        mina=strlen(no1.val)+strlen(no2.val)-maxa;
+        //Kh?i t?o giá tr? ban d?u cho m?ng giá tr? no1,no2
+        for (i=no1.len;i<=maxa;i++)
+            no1._val[i]=0;
+        for (i=no2.len;i<=maxa;i++)
+            no2._val[i]=0;
+        multiBig(no1,no2);
+        if (no1.sign==0)
+        {
+            rb.sign=0;
+            sumBig(no1,no2);
+            printf("No1 add No2 is: ");
+            display(rb);rb.sign=0;
+            minusBig(no1,no2);
+            printf("No1 minus No2 is : ");
+            display(rb);
+        }
+        else
+        {
+            rb.sign=1; 
+            no1.sign=0;
+            minusBig(no1,no2);
+            printf("No1 add No2 is: ");
+            display(rb);rb.sign=1; 
+            sumBig(no1,no2);
+            printf("No1 minus No2 is : ");
+            display(rb);
+        }
+        printf("No1 multiply with No2 is : ");
+        display(mub);
+        if (no2.len== 1 &&no2._val[0]==0)
+        {
+            printf("Cant devide by zero\n");
+        }
+        else
+        {
+            if (compare(no1,no2)==0)
+            {
+                printf("No1's abs devide by No2's abs is: 1");
+                printf("\n");
+                printf("Remainder: 0");
+                printf("\n");
+            }
+            if (compare(no1,no2)==1)
+            {
+                devideBig(no1,no2);
+                printf("No1's abs devide by No2's abs is: ");
+                display(db);
+                printf("Remainder: ");
+                display(re);
+            }
+            else
+            {
+                printf("Cant calculate |a| : |b|\n");
+            }
+        }
+        printf("-----------------------------\n");
+        printf("Do you want to continue (1/0)");
+        fflush(stdin);
+        scanf("%d",&bnext);
+        if (bnext!=1)
+        {
+            return 0;
+        }
+    } while (bnext==1);
+ 
+}
+///////////////The End. Daniel wu KSTNTT K54 11/2011 /////////////////
