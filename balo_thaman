@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <malloc.h>
+#include <string.h>
+// moi do vat voi so luong khong gioi han
+typedef struct {
+	char TenDV[20];// ten do vat
+	float TL, GT, DG;// trong luong, gia tri, don gia
+	int PA;// phuong an
+}DoVat;// cau truc do vat
+
+int Chon(float tl, float w){// chuyen vao trong luong cua 1 vat, trong luong cua balo
+	return (int) (w / tl);// trong luong cua balo chia trong luong cua 1 vat
+}
+
+DoVat * ReadFromFile(float *W, int *n){// doc file lay ra trong luong va so luong do vat
+     FILE *f;// tao con tro file
+     f=fopen("Balo.INP", "r");// mo file de doc
+     fscanf(f, "%f",W); // Xac dinh trong luong Ba lo
+	 DoVat *dsdv;// do vat la 1 con tro dsdv
+	 dsdv=(DoVat*)malloc(sizeof(DoVat));// cap phat vung nho bang kich thuoc cua 1 do vat
+	 int i=0;
+ 	 while (!feof(f)){
+	   fscanf(f, "%f%f",&dsdv[i].TL,&dsdv[i].GT);// doc vao trong luong va gia tri
+	   fgets(dsdv[i].TenDV,20,f);// nhap vao ten voi so luong ki tu 20
+	   dsdv[i].TenDV[strlen(dsdv[i].TenDV)-1]='\0';// lay xong ki tu cuoi cung gan = ket thuc chuoi
+	   dsdv[i].PA=0;// phuong an luc dau =0
+	   dsdv[i].DG = dsdv[i].GT / dsdv[i].TL;// tinh don gia
+	   i++;// tang i len
+	   dsdv=(DoVat*)realloc(dsdv, sizeof(DoVat)*(i+1)); // cap phat lai vung nho 
+	 }
+	 i--;// ra ngoai i giam di 1 vi bo dong dau tien vi no chua trong luong balo
+	 *n=i;// luc nay i chinh la so luong
+     fclose(f);
+     return dsdv;// tra ve dsdv
+}
+
+void Swap(DoVat *ds, int n){
+	for (int i=0; i<n-1; i++){
+		for (int j=i+1; j<n; j++){
+			if (ds[i].DG < ds[j].DG)
+			{
+				DoVat temp;
+				temp = ds[i];
+				ds[i] = ds[j];
+				ds[j] = temp;
+			}
+		}
+	}
+}
+
+main(){
+    DoVat *ds;
+    float W;
+    int n;
+    ds= ReadFromFile(&W,&n);
+    Swap(ds,n);
+//       for (int i=0; i<n; i++){
+//               printf("%f %f \n",ds[i].GT,ds[i].TL);
+//       }
+	for (int i=0;i<n; i++){
+		ds[i].PA = Chon(ds[i].TL, W);// phuong an chinh la trong luong chua cua balo chi cho trong luong cua vat dc chon
+		W = W - ds[i].TL * ds[i].PA;// trong luong con lai cua balo
+	}
+	printf("Phuong An chon: \n");
+	for (int i=0; i<n;i++){
+		printf("%d",ds[i].PA);// in ra phuong an
+		puts(ds[i].TenDV);// in ten do vat tuong ung
+	}
+	float tgt=0, ttl=0;// tong trong luong va tong gia tri
+	for (int i=0;i<n;i++){
+		tgt = tgt + ds[i].GT * ds[i].PA;
+		ttl = ttl + ds[i].TL * ds[i].PA;
+	}
+	printf("Tong gia tri: %.0f\n",tgt);
+	printf("Tong trong luong: %.0f",ttl);	
+	free(ds);
+}
