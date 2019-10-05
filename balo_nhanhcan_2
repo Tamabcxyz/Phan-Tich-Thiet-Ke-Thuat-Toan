@@ -1,0 +1,135 @@
+#include <stdio.h>
+#include <malloc.h>
+#include <string.h>
+#define maxL 10000
+typedef struct {
+	char TenDV[20];
+	float TL, GT, DG;
+	int PA;
+}DoVat;
+
+typedef struct{
+	float TGT, W, CT;
+	int SL, Parent;
+}Try;
+
+int Chon(float tl, float w){
+	if (w>tl) return 1;else return 0;
+}
+
+DoVat * ReadFromFile(float *W, int *n){
+     FILE *f;
+     f=fopen("CaiBalo2.INP", "r");
+     fscanf(f, "%f",W); // Xac dinh trong luong Ba lo
+	 DoVat *dsdv;
+	 dsdv=(DoVat*)malloc(sizeof(DoVat));
+	 int i=0;
+ 	 while (!feof(f)){
+	   fscanf(f, "%f%f",&dsdv[i].TL,&dsdv[i].GT);
+	   fgets(dsdv[i].TenDV,20,f);
+	   dsdv[i].TenDV[strlen(dsdv[i].TenDV)-1]='\0';
+	   dsdv[i].PA=0;
+	   dsdv[i].DG = dsdv[i].GT / dsdv[i].TL;
+	   i++;
+	   dsdv=(DoVat*)realloc(dsdv, sizeof(DoVat)*(i+1));  
+	 }
+	 i--;
+	 *n=i;
+     fclose(f);
+     return dsdv;
+}
+
+void Swap(DoVat *ds, int n){
+	for (int i=0; i<n-1; i++){
+		for (int j=i+1; j<n; j++){
+			if (ds[i].DG < ds[j].DG)
+			{
+				DoVat temp;
+				temp = ds[i];
+				ds[i] = ds[j];
+				ds[j] = temp;
+			}
+		}
+	}
+}
+
+void NhanhCan(DoVat *ds,float W,int n){
+	Try *map;
+	map=(Try*)malloc(sizeof(Try));
+	float max=0;
+	map[0].TGT = 0;
+	map[0].W = W;
+	map[0].CT = W * ds[0].DG;
+	map[0].SL = 0;
+	map[0].Parent = -1;
+	int token=1;
+	int stt=0;
+	int parent=0;
+	int nhanh;
+	int local=Chon(ds[stt].TL,map[parent].W);
+	cont:
+	do {
+		int maxSL=Chon(ds[stt].TL,map[parent].W);
+		for (int i=0;i<=maxSL;i++){
+			map=(Try*)realloc(map, sizeof(Try)*(token+1));  
+			map[token].TGT = map[parent].TGT + i*ds[stt].GT;
+			map[token].Parent = parent;
+			map[token].SL = i;
+			map[token].W = map[parent].W - i*ds[stt].TL;
+			map[token].CT = map[token].TGT + map[token].W*ds[stt+1].DG;
+			token++;
+		}
+		if (parent==0) {
+			nhanh = token-1;
+//			printf("%d \n",nhanh);
+		}
+		while (stt==n-1){
+			if (max<map[token-1].TGT){
+				max = map[token-1].TGT;
+				int temp1=stt;
+				int temp2=token-1;
+				do{
+					ds[temp1].PA = map[temp2].SL;
+					temp2 = map[temp2].Parent;
+					temp1--;
+				} while (temp1!=-1);
+			}
+			token = nhanh;
+			parent = nhanh -1;
+		break;
+		}
+		stt++;
+		parent=token-1;
+		if ((max!=0)&&(max>map[parent].CT)) {
+			local=0;
+			break;
+		}
+	} while (stt!=n);
+	if (local>0){
+		stt=1;
+		local--;
+		goto cont;
+	}
+}
+main(){
+    DoVat *ds;
+    float W;
+    int n;
+    ds= ReadFromFile(&W,&n);
+    Swap(ds,n);
+	NhanhCan(ds,W,n);
+	
+	printf("Phuong An chon: \n");
+	for (int i=0; i<n;i++){
+		printf("%d",ds[i].PA);
+		puts(ds[i].TenDV);
+	}
+	float tgt=0, ttl=0;
+	for (int i=0;i<n;i++){
+		tgt = tgt + ds[i].GT * ds[i].PA;
+		ttl = ttl + ds[i].TL * ds[i].PA;
+	}
+	printf("Tong gia tri: %.0f\n",tgt);
+	printf("Tong trong luong: %.0f",ttl);	
+
+}
